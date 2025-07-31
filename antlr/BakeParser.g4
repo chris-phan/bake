@@ -15,7 +15,7 @@
 
 grammar BakeParser;
 
-program: name ingredients* equipment* instructions* EOF;
+program: name ingredients? equipment? instructions? EOF;
 
 name: Hash ID;
 
