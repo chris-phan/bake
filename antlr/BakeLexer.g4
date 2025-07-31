@@ -1,0 +1,104 @@
+lexer grammar BakeLexer;
+
+Add: 'add';
+Subtract: 'subtract';
+Multiply: 'multiply';
+Divide: 'divide';
+Mod: 'mod';
+If: 'if';
+Is: 'is';
+LessThan: '<';
+GreaterThan: '>';
+LessThanEq: '<=';
+GreaterThanEq: '>=';
+And: 'and';
+Or: 'or';
+From: 'from';
+Colon: ':';
+Exclamation: '!';
+Question: '?';
+LParen: '(';
+RParen: ')';
+Quote: '"';
+Hash: '#';
+
+Repeat: 'repeat';
+Until: 'until';
+
+Step: '1.';
+Serve: 'serve';
+
+Ingredient: 'Ingredient';
+Ingredients: 'Ingredients';
+Equipment: 'Equipment';
+Instructions: 'Instructions';
+
+// Prepositions
+Aboard: [aA][bB][oO][aA][rR][dD];
+Above: [aA][bB][oO][vV][eE];
+Across: [aA][cC][rR][oO][sS][sS];
+After: [aA][fF][tT][eE][rR];
+Against: [aA][gG][aA][iI][nN][sS][tT];
+Aloft: [aA][lL][oO][fF][tT];
+Along: [aA][lL][oO][nN][gG];
+Alongside: [aA][lL][oO][nN][gG][sS][iI][dD][eE];
+Amid: [aA][mM][iI][dD];
+Amidst: [aA][mM][iI][dD][sS][tT];
+Mid: [mM][iI][dD];
+Midst: [mM][iI][dD][sS][tT];
+Among: [aA][mM][oO][nN][gG];
+Amongst: [aA][mM][oO][nN][gG][sS][tT];
+Around: [aA][rR][oO][uU][nN][dD];
+Round: [rR][oO][uU][nN][dD];
+Aslant: [aA][sS][lL][aA][nN][tT];
+Astride: [aA][sS][tT][rR][iI][dD][eE];
+At: [aA][tT];
+Atop: [aA][tT][oO][pP];
+Ontop: [oO][nN][tT][oO][pP];
+Before: [bB][eE][fF][oO][rR][eE];
+Behind: [bB][eE][hH][iI][nN][dD];
+Below: [bB][eE][lL][oO][wW];
+Beneath: [bB][eE][nN][eE][aA][tT][hH];
+Neath: [nN][eE][aA][tT][hH];
+Beside: [bB][eE][sS][iI][dD][eE];
+Besides: [bB][eE][sS][iI][dD][eE][sS];
+Beyond: [bB][eE][yY][oO][nN][dD];
+By: [bB][yY];
+Circa: [cC][iI][rR][cC][aA];
+Down: [dD][oO][wW][nN];
+Following: [fF][oO][lL][lL][oO][wW][iI][nN][gG];
+In: [iI][nN];
+Inside: [iI][nN][sS][iI][dD][eE];
+Into: [iI][nN][tT][oO];
+Near: [nN][eE][aA][rR];
+Next: [nN][eE][xX][tT];
+Off: [oO][fF][fF];
+On: [oO][nN];
+Onto: [oO][nN][tT][oO];
+Opposite: [oO][pP][pP][oO][sS][iI][tT][eE];
+Out: [oO][uU][tT];
+Outside: [oO][uU][tT][sS][iI][dD][eE];
+Over: [oO][vV][eE][rR];
+Past: [pP][aA][sS][tT];
+Through: [tT][hH][rR][oO][uU][gG][hH];
+To: [tT][oO];
+Touching: [tT][oO][uU][cC][hH][iI][nN][gG];
+Toward: [tT][oO][wW][aA][rR][dD];
+Towards: [tT][oO][wW][aA][rR][dD][sS];
+Under: [uU][nN][dD][eE][rR];
+Underneath: [uU][nN][dD][eE][rR][nN][eE][aA][tT][hH];
+Unto: [uU][nN][tT][oO];
+Up: [uU][pP];
+Upon: [uU][pP][oO][nN];
+With: [wW][iI][tT][hH];
+Within: [wW][iI][tT][hH][iI][nN];
+
+The: [tT][hH][eE] -> skip;
+A: [aA] -> skip;
+Your: [yY][oO][uU][rR] -> skip;
+
+ID: [a-zA-Z_][a-zA-Z_0-9]*;
+Int: [0-9]+;
+StringLiteral: '"' (~[\\"] | '\\\\' | '\\"' | '\\r' | '\\n')* '"';
+
+WS: [ \t\n\r\f]+ -> skip ;

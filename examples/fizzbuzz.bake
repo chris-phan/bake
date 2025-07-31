@@ -1,0 +1,18 @@
+# FizzBuzz
+
+## Equipment
+  1. HalfSheetTray (100 "")
+  1. Spoon ("")
+  1. Counter (1)
+  1. WorkSurface (0)
+
+## Instructions
+  1. repeat until Counter is 100:
+  1. Counter mod 3 to a WorkSurface!
+  1. if WorkSurface is 0: add "Fizz" to the Spoon!
+  1. Counter mod 5 to WorkSurface!
+  1. if WorkSurface is 0: add "Buzz" to your Spoon!
+  1. add SmallBowl to HalfSheetTray!
+  1. add 1 to Counter!
+  1. repeat!!????!!!!?!?!??
+  1. serve your HalfSheetTray!
