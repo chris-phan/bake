@@ -47,6 +47,7 @@ instruction: Step opStmt statementEndMarker
 					 ;
 
 opStmt: Add value (preposition value)?
+      | Add value And value (preposition value)?
       | Subtract value From value (preposition ID)?
 			| Multiply value By value (preposition ID)?
 			| Divide value By value (preposition ID)?
