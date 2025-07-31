@@ -81,6 +81,7 @@ Outside: [oO][uU][tT][sS][iI][dD][eE];
 Over: [oO][vV][eE][rR];
 Past: [pP][aA][sS][tT];
 Through: [tT][hH][rR][oO][uU][gG][hH];
+Throughout: [tT][hH][rR][oO][uU][gG][hH][oO][uU][tT];
 To: [tT][oO];
 Touching: [tT][oO][uU][cC][hH][iI][nN][gG];
 Toward: [tT][oO][wW][aA][rR][dD];

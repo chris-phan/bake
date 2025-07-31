@@ -75,8 +75,7 @@ statementEndMarker: Exclamation
 									| Exclamation statementEndMarker
 									| Question statementEndMarker
 					        ;
-preposition: A
-           | Aboard
+preposition: Aboard
 				 	 | Above
 					 | Across
 					 | After
@@ -123,6 +122,7 @@ preposition: A
 					 | Over
 					 | Past
 					 | Through
+					 | Throughout
 					 | To
 					 | Touching
 					 | Toward
