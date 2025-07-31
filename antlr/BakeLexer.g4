@@ -95,6 +95,7 @@ Within: [wW][iI][tT][hH][iI][nN];
 
 The: [tT][hH][eE] -> skip;
 A: [aA] -> skip;
+An: [aA][nN] -> skip;
 Your: [yY][oO][uU][rR] -> skip;
 
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
