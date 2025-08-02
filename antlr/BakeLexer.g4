@@ -1,9 +1,9 @@
 lexer grammar BakeLexer;
 
 Add: 'add';
-Subtract: 'subtract';
+Remove: 'remove';
 Multiply: 'multiply';
-Divide: 'divide';
+Split: 'split';
 Mod: 'mod';
 If: 'if';
 Is: 'is';
