@@ -65,6 +65,7 @@ value: ID
 	   | StringLiteral
 	   ;
 conditionOp: Is
+           | Is Not
            | LessThan
            | GreaterThan
 		       | LessThanEq
