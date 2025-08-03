@@ -7,6 +7,7 @@ Split: 'split';
 Mod: 'mod';
 If: 'if';
 Is: 'is';
+Not: 'not';
 LessThan: '<';
 GreaterThan: '>';
 LessThanEq: '<=';
@@ -21,6 +22,7 @@ LParen: '(';
 RParen: ')';
 Quote: '"';
 Hash: '#';
+ArrayAccess: '\'s#';
 
 Repeat: 'repeat';
 Until: 'until';
