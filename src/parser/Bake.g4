@@ -1,4 +1,8 @@
-grammar BakeParser;
+grammar Bake;
+
+options {
+  tokenVocab=BakeLexer;
+}
 
 program: name ingredients? equipment? instructions? EOF;
 
@@ -22,41 +26,42 @@ type: intType
 
 intType: Int;
 stringType: StringLiteral;
-arrayType: Int StringLiteral;
+arrayType: Int Int            #arrayInt
+         | Int StringLiteral  #arrayString
+				 ;
 
 instructions: instructionsHeading instruction+;
 instructionsHeading: Hash Hash Instructions;
-instruction: Step opStmt statementEndMarker
-           | Step loopStmt
-		       | Step ifStmt statementEndMarker
+instruction: Step opStmt statementEndMarker  #instOpStmt
+           | Step loopStmt                   #instLoopStmt
+		       | Step ifStmt statementEndMarker  #instIfStmt
 		       ;
 
-opStmt: Add value (preposition value)?
-      | Add value And value (preposition value)?
-      | Remove value From value (preposition ID)?
-	    | Multiply value By value (preposition ID)?
-	    | Split value Into value (preposition ID)?
-	    | value Mod value (preposition ID)?
-	    | Serve value
+opStmt: Add value (And value)? preposition value   #opAdd
+      | Remove value From value (preposition ID)?  #opSub
+	    | Multiply value By value (preposition ID)?  #opMult
+	    | Split value Into value (preposition ID)?   #opDiv
+	    | value Mod value (preposition ID)?          #opMod
+	    | Serve value                                #opServe
 	    ;
 ifStmt: If binaryExpr Colon opStmt;
-binaryExpr: value conditionOp value
-          | binaryExpr And binaryExpr
-		      | binaryExpr Or binaryExpr
+binaryExpr: value conditionOp value    #binaryExprCond
+          | binaryExpr And binaryExpr  #binaryExprAnd
+		      | binaryExpr Or binaryExpr   #binaryExprOr
 		      ;
 loopStmt: Repeat Until binaryExpr Colon instruction+ Step Repeat statementEndMarker;
-value: ID
-     | ID ArrayAccess ID;
-     | ID ArrayAccess Int;
-     | Int
-	   | StringLiteral
+value: ID                  #valueID
+     | ID ArrayAccess ID   #valueArrayAccessID
+     | ID ArrayAccess Int  #valueArrayAccessInt
+     | Int                 #valueInt
+	   | StringLiteral       #valueString
 	   ;
-conditionOp: Is
-           | Is Not
-           | LessThan
-           | GreaterThan
-		       | LessThanEq
-		       | GreaterThanEq
+conditionOp: Is             #condOpIs
+           | Is Not         #condOpIsNot
+           | LessThan       #condOpLessThan
+           | GreaterThan    #condOpGreaterThan
+		       | LessThanEq     #condOpLessThanEq
+		       | GreaterThanEq  #condOpGreaterThanEq
 		       ;
 statementEndMarker: Exclamation
                   | Question

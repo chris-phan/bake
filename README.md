@@ -266,3 +266,41 @@ No
 ### Classes
 
 No
+
+## Building and Running
+
+First time:
+```sh
+bash ./scripts/generateAntlrFiles.sh
+```
+and
+```sh
+conan profile detect --force
+```
+
+At the root of the directory:
+```sh
+conan install . --output-folder=build --build=missing
+```
+
+Then:
+```sh
+cd build
+```
+
+Next:
+```sh
+cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+```
+
+Finally:
+```sh
+cmake --build .
+```
+
+To execute:
+```sh
+./bake
+```
+
+When creating new files, remember to add it as a source in CMakeLists.txt inside `add_executable()`

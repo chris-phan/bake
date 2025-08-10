@@ -1,0 +1,38 @@
+# Add
+
+## Ingredients
+1. IntA (0)
+1. IntB (0)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid Int addition
+1. add 1 to IntA!
+1. add IntA to IntB!
+1. add IntA and 1 to IntB!
+1. add 1 and IntA to IntB!
+
+Note: Valid String addition
+1. add "a" to StrA!
+1. add StrA to StrB!
+1. add StrA and "a" to StrB!
+1. add "a" and StrA to StrB!
+
+Note: Invalid addition
+1. add IntA to StrA!
+1. add StrA to IntA!
+
+1. add IntA and 1 to StrA!
+1. add 1 and IntA to StrA!
+1. add IntA and IntB to StrA!
+
+1. add StrA and "a" to IntA!
+1. add "a" and StrA to IntA!
+1. add StrA and StrB to IntA!
+
+1. add IntA and StrA to IntB!
+1. add StrA and IntA to IntB!
+1. add IntA and StrA to StrB!
+1. add StrA and IntA to StrB!
+

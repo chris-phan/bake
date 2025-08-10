@@ -1,0 +1,7 @@
+[requires]
+antlr4-cppruntime/4.13.2
+llvm-core/19.1.7
+
+[generators]
+CMakeDeps
+CMakeToolchain

@@ -1,3 +1,9 @@
+build
+src/parser/generated
+.cache
+.DS_Store
+
+
 # Prerequisites
 *.d
 
