@@ -1,0 +1,37 @@
+# Subtraction
+
+## Ingredients
+1. IntA (0)
+1. IntB (0)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid subtraction
+1. remove 1 from IntA!
+1. remove IntA from IntB!
+1. remove IntA from 1 to IntB!
+1. remove 1 from IntA to IntB!
+
+Note: Invalid subtraction
+1. remove "a" from StrA!
+1. remove StrA from StrB!
+1. remove StrA from "a" to StrB!
+1. remove "a" from StrA to StrB!
+
+1. remove IntA from StrA!
+1. remove StrA from IntA!
+
+1. remove IntA from 1 to StrA!
+1. remove 1 from IntA to StrA!
+1. remove IntA from IntB to StrA!
+
+1. remove StrA from "a" to IntA!
+1. remove "a" from StrA to IntA!
+1. remove StrA from StrB to IntA!
+
+1. remove IntA from StrA to IntB!
+1. remove StrA from IntA to IntB!
+1. remove IntA from StrA to StrB!
+1. remove StrA from IntA to StrB!
+

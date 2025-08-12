@@ -1,0 +1,42 @@
+# Modulo
+
+## Ingredients
+1. IntA (1)
+1. IntB (1)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid modulo
+1. 100 mod 3 to IntA!
+1. 1 mod IntA to IntB!
+1. IntA mod 1 to IntB!
+1. IntA mod IntB to IntB!
+1. 1 mod IntA to IntB!
+
+Note: Invalid modulo
+1. 1 mod 0 to IntA!
+1. IntA mod 0 to IntB!
+
+1. "a" mod StrA to StrB!
+1. StrA mod "a" to StrB!
+1. StrA mod StrB to StrA!
+
+1. IntA mod StrA to IntA!
+1. StrA mod IntA to IntA!
+1. IntA mod StrA to StrB!
+1. StrA mod IntA to StrB!
+
+1. IntA mod 1 to StrA!
+1. 1 mod IntA to StrA!
+1. IntA mod IntB to StrA!
+
+1. StrA mod "a" to IntA!
+1. "a" mod StrA to IntA!
+1. StrA mod StrB to IntA!
+
+1. IntA mod StrA to IntB!
+1. StrA mod IntA to IntB!
+1. IntA mod StrA to StrB!
+1. StrA mod IntA to StrB!
+

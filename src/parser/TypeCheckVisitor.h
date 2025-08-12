@@ -156,18 +156,184 @@ public:
   }
 
   virtual std::any visitOpSub(BakeParser::OpSubContext *ctx) override {
+    Kind toRemoveType = std::any_cast<Kind>(visit(ctx->value(0)));
+    Kind removeFromType = std::any_cast<Kind>(visit(ctx->value(1)));
+    if (ctx->preposition()) {
+      // Specified destination
+      std::string destName = ctx->ID()->getText();
+      assertVariableExists(ctx, destName);
+
+      Kind destinationType = variableTypes[destName];
+      if (destinationType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->ID()->getText()
+                  << " to be type Int but is "
+                  << getKindName(destinationType)
+                  << " instead"
+                  << std::endl;
+      }
+    }
+    if (toRemoveType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(0)->getText()
+                  << " to be type Int but is "
+                  << getKindName(toRemoveType)
+                  << " instead"
+                  << std::endl;
+    } else if (removeFromType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(1)->getText()
+                  << " to be type Int but is "
+                  << getKindName(removeFromType)
+                  << " instead"
+                  << std::endl;
+    }
     return visitChildren(ctx);
   }
 
   virtual std::any visitOpMult(BakeParser::OpMultContext *ctx) override {
+    Kind toMultiplyType = std::any_cast<Kind>(visit(ctx->value(0)));
+    Kind multiplierType = std::any_cast<Kind>(visit(ctx->value(1)));
+    if (ctx->preposition()) {
+      // Specified destination
+      std::string destName = ctx->ID()->getText();
+      assertVariableExists(ctx, destName);
+
+      Kind destinationType = variableTypes[destName];
+      if (destinationType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->ID()->getText()
+                  << " to be type Int but is "
+                  << getKindName(destinationType)
+                  << " instead"
+                  << std::endl;
+      }
+    }
+    if (toMultiplyType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(0)->getText()
+                  << " to be type Int but is "
+                  << getKindName(toMultiplyType)
+                  << " instead"
+                  << std::endl;
+    } else if (multiplierType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(1)->getText()
+                  << " to be type Int but is "
+                  << getKindName(multiplierType)
+                  << " instead"
+                  << std::endl;
+    }
     return visitChildren(ctx);
   }
 
   virtual std::any visitOpDiv(BakeParser::OpDivContext *ctx) override {
+    Kind dividendType = std::any_cast<Kind>(visit(ctx->value(0)));
+    Kind divisorType = std::any_cast<Kind>(visit(ctx->value(1)));
+    if (ctx->preposition()) {
+      // Specified destination
+      std::string destName = ctx->ID()->getText();
+      assertVariableExists(ctx, destName);
+
+      Kind destinationType = variableTypes[destName];
+      if (destinationType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->ID()->getText()
+                  << " to be type Int but is "
+                  << getKindName(destinationType)
+                  << " instead"
+                  << std::endl;
+      }
+    }
+    if (dividendType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(0)->getText()
+                  << " to be type Int but is "
+                  << getKindName(dividendType)
+                  << " instead"
+                  << std::endl;
+    } else if (divisorType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(1)->getText()
+                  << " to be type Int but is "
+                  << getKindName(divisorType)
+                  << " instead"
+                  << std::endl;
+    }
+
+    if (divisorType == Kind::Int && ctx->value(1)->getText() == "0") {
+      std::cerr << "Error: Line "
+                << ctx->getStart()->getLine()
+                << ": divide by 0 error"
+                << std::endl;
+    }
+
     return visitChildren(ctx);
   }
 
   virtual std::any visitOpMod(BakeParser::OpModContext *ctx) override {
+    Kind baseValueType = std::any_cast<Kind>(visit(ctx->value(0)));
+    Kind modByType = std::any_cast<Kind>(visit(ctx->value(1)));
+
+    std::string destName = ctx->ID()->getText();
+    assertVariableExists(ctx, destName);
+
+    Kind destinationType = variableTypes[destName];
+    if (destinationType != Kind::Int) {
+      std::cerr << "Error: Line "
+                << ctx->getStart()->getLine()
+                << ": Type mismatch: expected "
+                << ctx->ID()->getText()
+                << " to be type Int but is "
+                << getKindName(destinationType)
+                << " instead"
+                << std::endl;
+    }
+
+    if (baseValueType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(0)->getText()
+                  << " to be type Int but is "
+                  << getKindName(baseValueType)
+                  << " instead"
+                  << std::endl;
+    } else if (modByType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": Type mismatch: expected "
+                  << ctx->value(1)->getText()
+                  << " to be type Int but is "
+                  << getKindName(modByType)
+                  << " instead"
+                  << std::endl;
+    }
+
+    if (modByType == Kind::Int && ctx->value(1)->getText() == "0") {
+      std::cerr << "Error: Line "
+                << ctx->getStart()->getLine()
+                << ": modulo by 0 error"
+                << std::endl;
+    }
     return visitChildren(ctx);
   }
 

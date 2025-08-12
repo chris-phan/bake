@@ -1,0 +1,42 @@
+# Divide
+
+## Ingredients
+1. IntA (1)
+1. IntB (1)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid division
+1. split 1 into IntA!
+1. split IntA into IntB!
+1. split IntA into 1 to IntB!
+1. split 1 into IntA to IntB!
+
+Note: Invalid division
+1. split 1 into 0!
+1. split 1 into 0 to IntA!
+1. split IntA into 0!
+1. split IntA into 0 to IntB!
+
+1. split "a" into StrA!
+1. split StrA into StrB!
+1. split StrA into "a" to StrB!
+1. split "a" into StrA to StrB!
+
+1. split IntA into StrA!
+1. split StrA into IntA!
+
+1. split IntA into 1 to StrA!
+1. split 1 into IntA to StrA!
+1. split IntA into IntB to StrA!
+
+1. split StrA into "a" to IntA!
+1. split "a" into StrA to IntA!
+1. split StrA into StrB to IntA!
+
+1. split IntA into StrA to IntB!
+1. split StrA into IntA to IntB!
+1. split IntA into StrA to StrB!
+1. split StrA into IntA to StrB!
+

@@ -199,11 +199,7 @@ With a destination
 ```
 
 #### Modulo
-In place
-```md
-  1. 10 mod 3!
-```
-With a destination
+Specifying a destination is required
 ```md
   1. 10 mod 3 to MasonJar!
 ```
