@@ -1,0 +1,56 @@
+# IfTests
+
+## Ingredients
+1. IntA (1)
+1. IntB (1)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid ifs
+1. if 1 is 1: serve 1!
+1. if 1 is not 1: serve 1!
+1. if "a" is "a": serve 1!
+1. if "a" is not "a": serve 1!
+
+1. if 1 < 1: serve 1!
+1. if 1 <= 1: serve 1!
+1. if 1 > 1: serve 1!
+1. if 1 >= 1: serve 1!
+
+1. if IntA is 1: serve 1!
+1. if IntA is not 1: serve 1!
+1. if StrA is "a": serve 1!
+1. if StrA is not "a": serve 1!
+
+1. if IntA < 1: serve 1!
+1. if IntA <= 1: serve 1!
+1. if IntA > 1: serve 1!
+1. if IntA >= 1: serve 1!
+
+1. if IntA is IntB: serve 1!
+1. if IntA is not IntB: serve 1!
+1. if StrA is StrB: serve 1!
+1. if StrA is not StrB: serve 1!
+
+1. if IntA < IntB: serve 1!
+1. if IntA <= IntB: serve 1!
+1. if IntA > IntB: serve 1!
+1. if IntA >= IntB: serve 1!
+
+Note: Invalid ifs
+1. if "a" < "a": serve 1!
+1. if "a" <= "a": serve 1!
+1. if "a" > "a": serve 1!
+1. if "a" >= "a": serve 1!
+
+1. if StrA < "a": serve 1!
+1. if StrA <= "a": serve 1!
+1. if StrA > "a": serve 1!
+1. if StrA >= "a": serve 1!
+
+1. if StrA < StrB: serve 1!
+1. if StrA <= StrB: serve 1!
+1. if StrA > StrB: serve 1!
+1. if StrA >= StrB: serve 1!
+

@@ -1,0 +1,129 @@
+# LoopConditionTests
+
+## Ingredients
+1. IntA (1)
+1. IntB (1)
+1. StrA ("")
+1. StrB ("")
+
+## Instructions
+Note: Valid loop conditions
+1. repeat until 1 is 1:
+1.   serve 1!
+1. repeat!
+1. repeat until 1 is not 1:
+1.   serve 1!
+1. repeat!
+
+1. repeat until "a" is "a":
+1.   serve 1!
+1. repeat!
+1. repeat until "a" is not "a":
+1.   serve 1!
+1. repeat!
+
+1. repeat until 1 < 1:
+1.   serve 1!
+1. repeat!
+1. repeat until 1 <= 1:
+1.   serve 1!
+1. repeat!
+1. repeat until 1 > 1:
+1.   serve 1!
+1. repeat!
+1. repeat until 1 >= 1:
+1.   serve 1!
+1. repeat!
+
+1. repeat until IntA is 1:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA is not 1:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA is "a":
+1.   serve 1!
+1. repeat!
+1. repeat until StrA is not "a":
+1.   serve 1!
+1. repeat!
+
+1. repeat until IntA < 1:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA <= 1:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA > 1:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA >= 1:
+1.   serve 1!
+1. repeat!
+
+1. repeat until IntA is IntB:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA is not IntB:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA is StrB:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA is not StrB:
+1.   serve 1!
+1. repeat!
+
+1. repeat until IntA < IntB:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA <= IntB:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA > IntB:
+1.   serve 1!
+1. repeat!
+1. repeat until IntA >= IntB:
+1.   serve 1!
+1. repeat!
+
+Note: Invalid loop conditions
+1. repeat until "a" < "a":
+1.   serve 1!
+1. repeat!
+1. repeat until "a" <= "a":
+1.   serve 1!
+1. repeat!
+1. repeat until "a" > "a":
+1.   serve 1!
+1. repeat!
+1. repeat until "a" >= "a":
+1.   serve 1!
+1. repeat!
+
+1. repeat until StrA < "a":
+1.   serve 1!
+1. repeat!
+1. repeat until StrA <= "a":
+1.   serve 1!
+1. repeat!
+1. repeat until StrA > "a":
+1.   serve 1!
+1. repeat!
+1. repeat until StrA >= "a":
+1.   serve 1!
+1. repeat!
+
+1. repeat until StrA < StrB:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA <= StrB:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA > StrB:
+1.   serve 1!
+1. repeat!
+1. repeat until StrA >= StrB:
+1.   serve 1!
+1. repeat!
+

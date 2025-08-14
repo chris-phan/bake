@@ -1,4 +1,5 @@
 #include "generated/BakeBaseVisitor.h"
+#include "generated/BakeLexer.h"
 #include "generated/BakeParser.h"
 #include <iostream>
 
@@ -346,6 +347,32 @@ public:
   }
 
   virtual std::any visitBinaryExprCond(BakeParser::BinaryExprCondContext *ctx) override {
+    // Enforce <, <=, >, and >= to use Ints
+    auto condType = ctx->conditionOp()->getStart()->getType();
+    std::vector<int> intComparisons = { BakeLexer::LessThan, BakeLexer::LessThanEq, BakeLexer::GreaterThan, BakeLexer::GreaterThanEq };
+
+    if (std::find(intComparisons.begin(), intComparisons.end(), condType) != intComparisons.end()) {
+      Kind lhsType = std::any_cast<Kind>(visit(ctx->value(0)));
+      Kind rhsType = std::any_cast<Kind>(visit(ctx->value(1)));
+      if (lhsType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": '"
+                  << ctx->conditionOp()->getText()
+                  << "' is unsupported for type "
+                  << getKindName(lhsType)
+                  << std::endl;
+      } else if (rhsType != Kind::Int) {
+        std::cerr << "Error: Line "
+                  << ctx->getStart()->getLine()
+                  << ": '"
+                  << ctx->conditionOp()->getText()
+                  << "' is unsupported for type "
+                  << getKindName(rhsType)
+                  << std::endl;
+      }
+    }
+
     return visitChildren(ctx);
   }
 
