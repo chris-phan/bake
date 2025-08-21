@@ -3,8 +3,6 @@
 #include "generated/BakeParser.h"
 #include <iostream>
 
-using Value = std::variant<std::string, int, std::vector<std::string>, std::vector<int>>;
-
 class TypeCheckVisitor : public BakeBaseVisitor {
 private:
     enum class Kind {

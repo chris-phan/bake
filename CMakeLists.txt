@@ -13,7 +13,6 @@ file(GLOB ANTLR_SOURCES "src/parser/Generated/*.cpp")
 add_executable(${PROJECT_NAME}
     src/main.cpp
     ${ANTLR_SOURCES}
-    src/parser/TypeCheckVisitor.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} antlr4_static llvm-core::llvm-core)

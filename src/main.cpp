@@ -5,6 +5,7 @@
 #include "parser/generated/BakeLexer.h"
 #include "parser/generated/BakeParser.h"
 #include "parser/TypeCheckVisitor.h"
+#include "parser/CodeGenVisitor.h"
 
 using namespace antlr4;
 
@@ -31,7 +32,8 @@ int main(int argc, char **argv) {
     BakeParser parser(&tokens);
 
     tree::ParseTree* tree = parser.program();
-    TypeCheckVisitor* visitor = new TypeCheckVisitor();
+    // TypeCheckVisitor* visitor = new TypeCheckVisitor();
+    CodeGenVisitor* visitor = new CodeGenVisitor();
 
     visitor->visit(tree);
 
