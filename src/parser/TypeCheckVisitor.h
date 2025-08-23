@@ -397,7 +397,7 @@ public:
   virtual std::any visitValueArrayAccessID(BakeParser::ValueArrayAccessIDContext *ctx) override {
     // Ensure that the variables used in the array access exist
     std::string arrayName = ctx->ID(0)->getText();
-    std::string accessIDName = ctx->ID(0)->getText();
+    std::string accessIDName = ctx->ID(1)->getText();
     assertVariableExists(ctx, arrayName);
     assertVariableExists(ctx, accessIDName);
 

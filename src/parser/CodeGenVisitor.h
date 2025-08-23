@@ -30,17 +30,32 @@ using namespace llvm;
 class CodeGenVisitor : public BakeBaseVisitor {
 private:
   enum class Kind {
-      Int,
-      String,
-      ArrayInt,
-      ArrayString
+    Int,
+    String,
+    ArrayInt,
+    ArrayString
   };
 
   std::unique_ptr<LLVMContext> theContext;
   std::unique_ptr<IRBuilder<>> builder;
   std::unique_ptr<Module> theModule;
-  std::map<std::string, Value *> namedValues;
-  std::map<std::string, AllocaInst*> variables;
+  std::map<std::string, Value*> namedValues;
+  std::map<std::string, Kind> variableTypes;
+
+  Value* loadIfID(BakeParser::ValueContext *ctx, Value *val) {
+    if (dynamic_cast<BakeParser::ValueIDContext*>(ctx) != nullptr) {
+      return builder->CreateLoad(builder->getInt32Ty(), val, "loadID");
+    }
+    // TODO: figure out how to load this other stuff
+    /*else if (dynamic_cast<BakeParser::ValueArrayAccessIDContext*>(ctx) != nullptr) {*/
+    /*  return builder->CreateLoad(elemType, val, "loadArrayAccessID");*/
+    /*} else if (dynamic_cast<BakeParser::ValueArrayAccessIntContext*>(ctx) != nullptr) {*/
+    /*  return builder->CreateLoad(elemType, val, "loadArrayAccessInt");*/
+    /*}*/
+
+    // Don't load if it's an Int literal or String literal
+    return val;
+  }
 
 public:
   CodeGenVisitor() {
@@ -53,6 +68,20 @@ public:
     
     BasicBlock *entry = BasicBlock::Create(*theContext, "entry", mainFunc);
     builder->SetInsertPoint(entry);
+  }
+
+  std::unique_ptr<LLVMContext> getContext() {
+    return std::move(theContext);
+  }
+
+  std::unique_ptr<Module> getModule() {
+    return std::move(theModule);
+  }
+
+  // Call after visit() to end the main function block
+  void finish() {
+    builder->CreateRet(builder->getInt32(0));
+    /*theModule->print(outs(), nullptr);*/
   }
 
   virtual std::any visitProgram(BakeParser::ProgramContext *ctx) override {
@@ -85,50 +114,9 @@ public:
 
   virtual std::any visitItemDecl(BakeParser::ItemDeclContext *ctx) override {
     std::string varName = ctx->ID()->getText();
-    Value *val = std::any_cast<Value*>(visit(ctx->type()));
-    namedValues[varName] = val;
-
-    /*Kind varType = typeAndVal.first;*/
-    /*Value *initVal = typeAndVal.second;*/
-    /**/
-    /*AllocaInst *alloca;*/
-    /*switch (varType) {*/
-    /*  case Kind::Int: {*/
-    /*    alloca = builder->CreateAlloca(builder->getInt32Ty(), nullptr, varName);*/
-    /*    builder->CreateStore(initVal, alloca);*/
-    /*    break;*/
-    /*  }*/
-    /*  case Kind::String: {*/
-    /*    int strLen = ctx->type()->stringType()->StringLiteral()->getText().length();*/
-    /*    strLen -= 2;  // remove quotes ("") from the count*/
-    /*    std::cout << "(string) strLen: " << strLen << std::endl;*/
-    /**/
-    /*    Type *charType = builder->getInt8Ty();*/
-    /*    Type *arrType = ArrayType::get(charType, strLen);*/
-    /*    alloca = builder->CreateAlloca(arrType, nullptr, varName);*/
-    /*    break;*/
-    /*  }*/
-    /*  case Kind::ArrayInt: {*/
-    /*    int arrLen = std::stoi(ctx->type()->arrayType()->children[0]->getText());*/
-    /*    std::cout << "(array int) arrLen: " << arrLen << std::endl;*/
-    /**/
-    /*    Type *intType = builder->getInt32Ty();*/
-    /*    Type *arrType = ArrayType::get(intType, arrLen);*/
-    /*    alloca = builder->CreateAlloca(arrType, nullptr, varName);*/
-    /*    break;*/
-    /*  }*/
-    /*  case Kind::ArrayString: {*/
-    /*    int arrLen = std::stoi(ctx->type()->arrayType()->children[0]->getText());*/
-    /*    std::cout << "(array string) arrLen: " << arrLen << std::endl;*/
-    /**/
-    /*    Type *strPtrType = builder->getPtrTy();*/
-    /*    Type *arrType = ArrayType::get(strPtrType, arrLen);*/
-    /*    alloca = builder->CreateAlloca(arrType, nullptr, varName);*/
-    /*    break;*/
-    /*  }*/
-    /*  default:*/
-    /*    break;*/
-    /*}*/
+    std::pair<Value*, Kind> varInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->type()));
+    namedValues[varName] = varInfo.first;
+    variableTypes[varName] = varInfo.second;
 
     return nullptr;
   }
@@ -148,7 +136,7 @@ public:
       "globalInt"
     );
 
-    return globalInt;
+    return std::make_pair(globalInt, Kind::Int);
   }
 
   virtual std::any visitStringType(BakeParser::StringTypeContext *ctx) override {
@@ -170,7 +158,8 @@ public:
     // Get a pointer to the first char
     Value *zero = builder->getInt32(0);
     Value *idxs[] = {zero, zero};
-    return builder->CreateInBoundsGEP(globalStr->getValueType(), globalStr, idxs, "strPtr");
+    Value *strPtr = builder->CreateInBoundsGEP(globalStr->getValueType(), globalStr, idxs, "strPtr");
+    return std::make_pair(strPtr, Kind::String);
   }
 
   virtual std::any visitArrayInt(BakeParser::ArrayIntContext *ctx) override {
@@ -192,7 +181,8 @@ public:
     // Get a pointer to the first int
     Value *zero = builder->getInt32(0);
     Value *idxs[] = {zero, zero};
-    return builder->CreateInBoundsGEP(globalIntArr->getValueType(), globalIntArr, idxs, "intArrPtr");
+    Value *intArrPtr = builder->CreateInBoundsGEP(globalIntArr->getValueType(), globalIntArr, idxs, "intArrPtr");
+    return std::make_pair(intArrPtr, Kind::ArrayInt);
   }
 
   virtual std::any visitArrayString(BakeParser::ArrayStringContext *ctx) override {
@@ -233,68 +223,50 @@ public:
       "strArr"
     );
 
-    theModule->print(outs(), nullptr);
-    return builder->CreateInBoundsGEP(globalStrArr->getValueType(), globalStrArr, {zero, zero}, "strArrPtr");
+    Value *strArrPtr = builder->CreateInBoundsGEP(globalStrArr->getValueType(), globalStrArr, {zero, zero}, "strArrPtr");
+    return std::make_pair(strArrPtr, Kind::ArrayString);
   }
 
-  /*virtual std::any visitInstructions(BakeParser::InstructionsContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitInstructionsHeading(BakeParser::InstructionsHeadingContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitInstOpStmt(BakeParser::InstOpStmtContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitInstLoopStmt(BakeParser::InstLoopStmtContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitInstIfStmt(BakeParser::InstIfStmtContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitOpAdd(BakeParser::OpAddContext *ctx) override {*/
-  /*  Kind operand1 = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*  if (ctx->And()) {*/
-  /*    Kind operand2 = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*    Kind destination = std::any_cast<Kind>(visit(ctx->value(2)));*/
-  /**/
-  /*    if (operand1 != operand2) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: Can't add different types, "*/
-  /*                << getKindName(operand1)*/
-  /*                << " and "*/
-  /*                << getKindName(operand2)*/
-  /*                << std::endl;*/
-  /*    } else if (operand1 != destination) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: Can't assign "*/
-  /*                << getKindName(operand1)*/
-  /*                << " to "*/
-  /*                << getKindName(destination)*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  } else {*/
-  /*    Kind destination = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*    if (operand1 != destination) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: Can't add "*/
-  /*                << getKindName(operand1)*/
-  /*                << " to "*/
-  /*                << getKindName(destination)*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  }*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
+  virtual std::any visitInstructions(BakeParser::InstructionsContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitInstructionsHeading(BakeParser::InstructionsHeadingContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitInstOpStmt(BakeParser::InstOpStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitInstLoopStmt(BakeParser::InstLoopStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitInstIfStmt(BakeParser::InstIfStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitOpAdd(BakeParser::OpAddContext *ctx) override {
+    std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+
+    Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
+    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+    if (ctx->And()) {
+      std::pair<Value*, Kind> destinationInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(2)));
+      Value *destination = destinationInfo.first;
+
+      Value *addResult = builder->CreateAdd(operand1, operand2, "addInt");
+      builder->CreateStore(addResult, destination, "storeWithDest");
+    } else {
+      Value *addResult = builder->CreateAdd(operand1, operand2, "addInt");
+      builder->CreateStore(addResult, operand2, "storeInPlace");
+    }
+
+    return nullptr;
+  }
+
   /*virtual std::any visitOpSub(BakeParser::OpSubContext *ctx) override {*/
   /*  Kind toRemoveType = std::any_cast<Kind>(visit(ctx->value(0)));*/
   /*  Kind removeFromType = std::any_cast<Kind>(visit(ctx->value(1)));*/
@@ -476,11 +448,41 @@ public:
   /*  }*/
   /*  return visitChildren(ctx);*/
   /*}*/
-  /**/
-  /*virtual std::any visitOpServe(BakeParser::OpServeContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
+
+  virtual std::any visitOpServe(BakeParser::OpServeContext *ctx) override {
+    FunctionType *printfType = FunctionType::get(
+      builder->getInt8Ty(),
+      {PointerType::get(builder->getInt8Ty(), 0)},
+      true
+    );
+    FunctionCallee printfFunc = theModule->getOrInsertFunction("printf", printfType);
+
+    Value *formatStr = nullptr;
+    std::pair<Value*, Kind> valInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value()));
+    Value *val = loadIfID(ctx->value(), valInfo.first);
+    Kind type = valInfo.second;
+
+    if (type == Kind::Int) {
+      auto *fmtConst = ConstantDataArray::getString(*theContext, "%d", true);
+      auto *globalFmt = new GlobalVariable(
+        *theModule,
+        fmtConst->getType(),
+        true,
+        GlobalValue::PrivateLinkage,
+        fmtConst,
+        "fmtStringInt"
+      );
+      Value *zero = builder->getInt32(0);
+      formatStr = builder->CreateInBoundsGEP(globalFmt->getValueType()->getArrayElementType(), globalFmt, {zero, zero}, "fmtPtrInt");
+      builder->CreateCall(printfFunc, {formatStr, val});
+    } else if (type == Kind::String) {
+      formatStr = val;
+      return builder->CreateCall(printfFunc, {formatStr});
+    }
+
+    return nullptr;
+  }
+
   /*virtual std::any visitIfStmt(BakeParser::IfStmtContext *ctx) override {*/
   /*  return visitChildren(ctx);*/
   /*}*/
@@ -526,70 +528,87 @@ public:
   /*virtual std::any visitLoopStmt(BakeParser::LoopStmtContext *ctx) override {*/
   /*  return visitChildren(ctx);*/
   /*}*/
-  /**/
-  /*virtual std::any visitValueID(BakeParser::ValueIDContext *ctx) override {*/
-  /*  std::string varName = ctx->ID()->getText();*/
-  /*  assertVariableExists(ctx, varName);*/
-  /*  return variableTypes[varName];*/
-  /*}*/
-  /**/
-  /*// Arrays can only be accessed using integers or variables that are integers*/
-  /*// Strings can't be indexed*/
-  /*virtual std::any visitValueArrayAccessID(BakeParser::ValueArrayAccessIDContext *ctx) override {*/
-  /*  // Ensure that the variables used in the array access exist*/
-  /*  std::string arrayName = ctx->ID(0)->getText();*/
-  /*  std::string accessIDName = ctx->ID(0)->getText();*/
-  /*  assertVariableExists(ctx, arrayName);*/
-  /*  assertVariableExists(ctx, accessIDName);*/
-  /**/
-  /*  // Ensure that the variable being indexed is an actual array type*/
-  /*  Kind arrayType = variableTypes[arrayName];*/
-  /*  if (arrayType != Kind::ArrayInt || arrayType != Kind::ArrayString) {*/
-  /*    std::cerr << "Error: Can't index " << arrayName << " which is of type " << getKindName(arrayType) << std::endl;*/
-  /*    exit(1);*/
-  /*  }*/
-  /**/
-  /*  // Ensure that the ID used as an index is an Int*/
-  /*  Kind accessIDType = variableTypes[accessIDName];*/
-  /*  if (accessIDType != Kind::Int) {*/
-  /*    std::cerr << "Error: " << accessIDName << " is of type " << getKindName(accessIDType) << " but has to be of type Int" << std::endl;*/
-  /*    exit(1);*/
-  /*  }*/
-  /**/
-  /*  // Expression resolves to a single Int or a single String*/
-  /*  if (arrayType == Kind::ArrayInt) {*/
-  /*    return Kind::Int;*/
-  /*  }*/
-  /*  return Kind::String;*/
-  /*}*/
-  /**/
-  /*virtual std::any visitValueArrayAccessInt(BakeParser::ValueArrayAccessIntContext *ctx) override {*/
-  /*  // Ensure that the variable being indexed exists*/
-  /*  std::string arrayName = ctx->ID()->getText();*/
-  /*  assertVariableExists(ctx, arrayName);*/
-  /**/
-  /*  // Ensure that the variable being indexed is an actual array type*/
-  /*  Kind arrayType = variableTypes[arrayName];*/
-  /*  if (arrayType != Kind::ArrayInt || arrayType != Kind::ArrayString) {*/
-  /*    std::cerr << "Error: Can't index " << arrayName << " which is of type " << getKindName(arrayType) << std::endl;*/
-  /*    exit(1);*/
-  /*  }*/
-  /**/
-  /*  // Expression resolves to a single Int or a single String*/
-  /*  if (arrayType == Kind::ArrayInt) {*/
-  /*    return Kind::Int;*/
-  /*  }*/
-  /*  return Kind::String;*/
-  /*}*/
-  /**/
-  /*virtual std::any visitValueInt(BakeParser::ValueIntContext *ctx) override {*/
-  /*  return Kind::Int;*/
-  /*}*/
-  /**/
-  /*virtual std::any visitValueString(BakeParser::ValueStringContext *ctx) override {*/
-  /*  return Kind::String;*/
-  /*}*/
-  /**/
+
+  virtual std::any visitValueID(BakeParser::ValueIDContext *ctx) override {
+    Value *val = namedValues[ctx->ID()->getText()];
+    Kind type = variableTypes[ctx->ID()->getText()];
+    return std::make_pair(val, type);
+  }
+
+  // Arrays can only be accessed using integers or variables that are integers
+  // Strings can't be indexed
+  virtual std::any visitValueArrayAccessID(BakeParser::ValueArrayAccessIDContext *ctx) override {
+    Value *zero = builder->getInt32(0);
+
+    // The language is 1-indexed, so subtract 1 from the provided idx
+    Value *one = builder->getInt32(1);
+    Value *idx = namedValues[ctx->ID(1)->getText()];
+    Value *oneAdjustedIdx = builder->CreateSub(idx, one, "adjustIdxBy1");
+
+    Value *arr = namedValues[ctx->ID(0)->getText()];
+    Type *elemType = cast<PointerType>(arr->getType())->getArrayElementType();
+    Value *elemPtr = builder->CreateInBoundsGEP(elemType, arr, oneAdjustedIdx, "elemPtr");
+
+    // Array access resolves to either an Int or String
+    Kind arrType = variableTypes[ctx->ID(0)->getText()];
+    Kind type = Kind::Int;
+    if (arrType == Kind::ArrayString) {
+      type = Kind::String;
+    }
+
+    return std::make_pair(elemPtr, type);
+  }
+
+  virtual std::any visitValueArrayAccessInt(BakeParser::ValueArrayAccessIntContext *ctx) override {
+    Value *zero = builder->getInt32(0);
+
+    // The language is 1-indexed, so subtract 1 from the provided idx
+    Value *one = builder->getInt32(1);
+    Value *idx = builder->getInt32(std::stoi(ctx->Int()->getText()));
+    Value *oneAdjustedIdx = builder->CreateSub(idx, one, "adjustIdxBy1");
+
+    Value *arr = namedValues[ctx->ID()->getText()];
+    Type *elemType = cast<PointerType>(arr->getType())->getArrayElementType();
+    Value *elemPtr = builder->CreateInBoundsGEP(elemType, arr, oneAdjustedIdx, "elemPtr");
+
+    // Array access resolves to either an Int or String
+    Kind arrType = variableTypes[ctx->ID()->getText()];
+    Kind type = Kind::Int;
+    if (arrType == Kind::ArrayString) {
+      type = Kind::String;
+    }
+
+    return std::make_pair(elemPtr, type);
+  }
+
+  virtual std::any visitValueInt(BakeParser::ValueIntContext *ctx) override {
+    Value *val = builder->getInt32(std::stoi(ctx->Int()->getText()));
+    return std::make_pair(val, Kind::Int);
+  }
+
+  virtual std::any visitValueString(BakeParser::ValueStringContext *ctx) override {
+    std::string strVal = ctx->StringLiteral()->getText();
+
+    // Trim starting and end quotes ("")
+    strVal = strVal.substr(1, strVal.length() - 2);
+
+    auto strConst = ConstantDataArray::getString(*theContext, strVal, true);
+    GlobalVariable *globalStr = new GlobalVariable(
+      *theModule,
+      strConst->getType(),
+      true,
+      GlobalValue::PrivateLinkage,
+      strConst,
+      "string"
+    );
+
+    // Get a pointer to the first char
+    Value *zero = builder->getInt32(0);
+    Value *idxs[] = {zero, zero};
+    Value *strPtr = builder->CreateInBoundsGEP(globalStr->getValueType(), globalStr, idxs, "strPtr");
+    return std::make_pair(strPtr, Kind::String);
+  }
+
   /*virtual std::any visitCondOpIs(BakeParser::CondOpIsContext *ctx) override {*/
   /*  return visitChildren(ctx);*/
   /*}*/
