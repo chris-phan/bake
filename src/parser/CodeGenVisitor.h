@@ -254,8 +254,7 @@ public:
     Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
     Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
     if (ctx->And()) {
-      std::pair<Value*, Kind> destinationInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(2)));
-      Value *destination = destinationInfo.first;
+      Value *destination = namedValues[ctx->ID()->getText()];
 
       Value *addResult = builder->CreateAdd(operand1, operand2, "addInt");
       builder->CreateStore(addResult, destination, "storeWithDest");
@@ -267,187 +266,77 @@ public:
     return nullptr;
   }
 
-  /*virtual std::any visitOpSub(BakeParser::OpSubContext *ctx) override {*/
-  /*  Kind toRemoveType = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*  Kind removeFromType = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*  if (ctx->preposition()) {*/
-  /*    // Specified destination*/
-  /*    std::string destName = ctx->ID()->getText();*/
-  /*    assertVariableExists(ctx, destName);*/
-  /**/
-  /*    Kind destinationType = variableTypes[destName];*/
-  /*    if (destinationType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->ID()->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(destinationType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  }*/
-  /*  if (toRemoveType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(0)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(toRemoveType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  } else if (removeFromType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(1)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(removeFromType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  }*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitOpMult(BakeParser::OpMultContext *ctx) override {*/
-  /*  Kind toMultiplyType = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*  Kind multiplierType = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*  if (ctx->preposition()) {*/
-  /*    // Specified destination*/
-  /*    std::string destName = ctx->ID()->getText();*/
-  /*    assertVariableExists(ctx, destName);*/
-  /**/
-  /*    Kind destinationType = variableTypes[destName];*/
-  /*    if (destinationType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->ID()->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(destinationType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  }*/
-  /*  if (toMultiplyType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(0)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(toMultiplyType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  } else if (multiplierType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(1)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(multiplierType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  }*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitOpDiv(BakeParser::OpDivContext *ctx) override {*/
-  /*  Kind dividendType = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*  Kind divisorType = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*  if (ctx->preposition()) {*/
-  /*    // Specified destination*/
-  /*    std::string destName = ctx->ID()->getText();*/
-  /*    assertVariableExists(ctx, destName);*/
-  /**/
-  /*    Kind destinationType = variableTypes[destName];*/
-  /*    if (destinationType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->ID()->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(destinationType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  }*/
-  /*  if (dividendType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(0)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(dividendType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  } else if (divisorType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(1)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(divisorType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  }*/
-  /**/
-  /*  if (divisorType == Kind::Int && ctx->value(1)->getText() == "0") {*/
-  /*    std::cerr << "Error: Line "*/
-  /*              << ctx->getStart()->getLine()*/
-  /*              << ": divide by 0 error"*/
-  /*              << std::endl;*/
-  /*  }*/
-  /**/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitOpMod(BakeParser::OpModContext *ctx) override {*/
-  /*  Kind baseValueType = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*  Kind modByType = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /**/
-  /*  std::string destName = ctx->ID()->getText();*/
-  /*  assertVariableExists(ctx, destName);*/
-  /**/
-  /*  Kind destinationType = variableTypes[destName];*/
-  /*  if (destinationType != Kind::Int) {*/
-  /*    std::cerr << "Error: Line "*/
-  /*              << ctx->getStart()->getLine()*/
-  /*              << ": Type mismatch: expected "*/
-  /*              << ctx->ID()->getText()*/
-  /*              << " to be type Int but is "*/
-  /*              << getKindName(destinationType)*/
-  /*              << " instead"*/
-  /*              << std::endl;*/
-  /*  }*/
-  /**/
-  /*  if (baseValueType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(0)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(baseValueType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  } else if (modByType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": Type mismatch: expected "*/
-  /*                << ctx->value(1)->getText()*/
-  /*                << " to be type Int but is "*/
-  /*                << getKindName(modByType)*/
-  /*                << " instead"*/
-  /*                << std::endl;*/
-  /*  }*/
-  /**/
-  /*  if (modByType == Kind::Int && ctx->value(1)->getText() == "0") {*/
-  /*    std::cerr << "Error: Line "*/
-  /*              << ctx->getStart()->getLine()*/
-  /*              << ": modulo by 0 error"*/
-  /*              << std::endl;*/
-  /*  }*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
+  virtual std::any visitOpSub(BakeParser::OpSubContext *ctx) override {
+    std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+
+    // Syntax is `remove op1 from op2`, so do op2 - op1
+    Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
+    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+    if (ctx->preposition()) {
+      Value *destination = namedValues[ctx->ID()->getText()];
+
+      Value *subResult = builder->CreateSub(operand2, operand1, "subInt");
+      builder->CreateStore(subResult, destination, "storeWithDest");
+    } else {
+      Value *subResult = builder->CreateSub(operand2, operand1, "subInt");
+      builder->CreateStore(subResult, operand2, "storeInPlace");
+    }
+
+    return nullptr;
+  }
+
+  virtual std::any visitOpMult(BakeParser::OpMultContext *ctx) override {
+    std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+
+    Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
+    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+    if (ctx->preposition()) {
+      Value *destination = namedValues[ctx->ID()->getText()];
+
+      Value *multResult = builder->CreateMul(operand1, operand2, "multInt");
+      builder->CreateStore(multResult, destination, "storeWithDest");
+    } else {
+      Value *multResult = builder->CreateMul(operand1, operand2, "multInt");
+      builder->CreateStore(multResult, operand2, "storeInPlace");
+    }
+
+    return nullptr;
+  }
+
+  virtual std::any visitOpDiv(BakeParser::OpDivContext *ctx) override {
+    std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+
+    Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
+    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+    if (ctx->preposition()) {
+      Value *destination = namedValues[ctx->ID()->getText()];
+
+      Value *divResult = builder->CreateSDiv(operand1, operand2, "divInt");
+      builder->CreateStore(divResult, destination, "storeWithDest");
+    } else {
+      Value *divResult = builder->CreateSDiv(operand1, operand2, "divInt");
+      builder->CreateStore(divResult, operand2, "storeInPlace");
+    }
+
+    return nullptr;
+  }
+
+  virtual std::any visitOpMod(BakeParser::OpModContext *ctx) override {
+    std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+
+    Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
+    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+    Value *destination = namedValues[ctx->ID()->getText()];
+
+    Value *modResult = builder->CreateSRem(operand1, operand2, "modInt");
+    builder->CreateStore(modResult, destination, "storeWithDest");
+
+    return nullptr;
+  }
 
   virtual std::any visitOpServe(BakeParser::OpServeContext *ctx) override {
     FunctionType *printfType = FunctionType::get(

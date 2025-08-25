@@ -1,0 +1,11 @@
+# DivAndServe
+
+## Ingredients
+1. IntA (10)
+1. IntB (3)
+1. IntC (0)
+
+## Instructions
+1. split IntA into IntB to IntC!
+1. serve IntC!
+

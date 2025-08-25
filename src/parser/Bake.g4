@@ -37,7 +37,7 @@ instruction: Step opStmt statementEndMarker  #instOpStmt
            | Step ifStmt statementEndMarker  #instIfStmt
            ;
 
-opStmt: Add value (And value)? preposition value   #opAdd
+opStmt: Add value (And value)? preposition ID      #opAdd
       | Remove value From value (preposition ID)?  #opSub
       | Multiply value By value (preposition ID)?  #opMult
       | Split value Into value (preposition ID)?   #opDiv
