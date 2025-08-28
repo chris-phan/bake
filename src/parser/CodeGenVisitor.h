@@ -165,7 +165,6 @@ public:
   virtual std::any visitArrayInt(BakeParser::ArrayIntContext *ctx) override {
     int arrLen = std::stoi(ctx->Int(0)->getText());
     int initVal = std::stoi(ctx->Int(1)->getText());
-    std::cout << "visitArrayInt: arrLen: " << arrLen << " initVal: " << initVal << std::endl;
     std::vector<Constant*> initVals(arrLen, ConstantInt::get(builder->getInt32Ty(), initVal));
 
     ArrayType *arrType = ArrayType::get(builder->getInt32Ty(), arrLen);
@@ -191,8 +190,6 @@ public:
 
     // Trim starting and end quotes ("")
     initVal = initVal.substr(1, initVal.length() - 2);
-
-    std::cout << "visitArrayString: arrLen: " << arrLen << " initVal: " << initVal << std::endl;
 
     // Create pointers for each string in the array
     std::vector<Constant*> strPtrs;
@@ -249,19 +246,20 @@ public:
 
   virtual std::any visitOpAdd(BakeParser::OpAddContext *ctx) override {
     std::pair<Value*, Kind> operand1Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
-    std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
-
     Value *operand1 = loadIfID(ctx->value(0), operand1Info.first);
-    Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
-    if (ctx->And()) {
-      Value *destination = namedValues[ctx->ID()->getText()];
 
-      Value *addResult = builder->CreateAdd(operand1, operand2, "addInt");
-      builder->CreateStore(addResult, destination, "storeWithDest");
+    Value *destination = namedValues[ctx->ID()->getText()];
+
+    Value *addResult;
+    if (ctx->And()) {
+      std::pair<Value*, Kind> operand2Info = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+      Value *operand2 = loadIfID(ctx->value(1), operand2Info.first);
+      addResult = builder->CreateAdd(operand1, operand2, "addInt");
     } else {
-      Value *addResult = builder->CreateAdd(operand1, operand2, "addInt");
-      builder->CreateStore(addResult, operand2, "storeInPlace");
+      Value *loadedDest = builder->CreateLoad(builder->getInt32Ty(), destination, "loadID");
+      addResult = builder->CreateAdd(operand1, loadedDest, "addInt");
     }
+    builder->CreateStore(addResult, destination, "storeWithDest");
 
     return nullptr;
   }
@@ -280,7 +278,7 @@ public:
       builder->CreateStore(subResult, destination, "storeWithDest");
     } else {
       Value *subResult = builder->CreateSub(operand2, operand1, "subInt");
-      builder->CreateStore(subResult, operand2, "storeInPlace");
+      builder->CreateStore(subResult, operand2Info.first, "storeInPlace");
     }
 
     return nullptr;
@@ -299,7 +297,7 @@ public:
       builder->CreateStore(multResult, destination, "storeWithDest");
     } else {
       Value *multResult = builder->CreateMul(operand1, operand2, "multInt");
-      builder->CreateStore(multResult, operand2, "storeInPlace");
+      builder->CreateStore(multResult, operand1Info.first, "storeInPlace");
     }
 
     return nullptr;
@@ -318,7 +316,7 @@ public:
       builder->CreateStore(divResult, destination, "storeWithDest");
     } else {
       Value *divResult = builder->CreateSDiv(operand1, operand2, "divInt");
-      builder->CreateStore(divResult, operand2, "storeInPlace");
+      builder->CreateStore(divResult, operand1Info.first, "storeInPlace");
     }
 
     return nullptr;
@@ -372,48 +370,62 @@ public:
     return nullptr;
   }
 
-  /*virtual std::any visitIfStmt(BakeParser::IfStmtContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitBinaryExprCond(BakeParser::BinaryExprCondContext *ctx) override {*/
-  /*  // Enforce <, <=, >, and >= to use Ints*/
-  /*  auto condType = ctx->conditionOp()->getStart()->getType();*/
-  /*  std::vector<int> intComparisons = { BakeLexer::LessThan, BakeLexer::LessThanEq, BakeLexer::GreaterThan, BakeLexer::GreaterThanEq };*/
-  /**/
-  /*  if (std::find(intComparisons.begin(), intComparisons.end(), condType) != intComparisons.end()) {*/
-  /*    Kind lhsType = std::any_cast<Kind>(visit(ctx->value(0)));*/
-  /*    Kind rhsType = std::any_cast<Kind>(visit(ctx->value(1)));*/
-  /*    if (lhsType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": '"*/
-  /*                << ctx->conditionOp()->getText()*/
-  /*                << "' is unsupported for type "*/
-  /*                << getKindName(lhsType)*/
-  /*                << std::endl;*/
-  /*    } else if (rhsType != Kind::Int) {*/
-  /*      std::cerr << "Error: Line "*/
-  /*                << ctx->getStart()->getLine()*/
-  /*                << ": '"*/
-  /*                << ctx->conditionOp()->getText()*/
-  /*                << "' is unsupported for type "*/
-  /*                << getKindName(rhsType)*/
-  /*                << std::endl;*/
-  /*    }*/
-  /*  }*/
-  /**/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitBinaryExprOr(BakeParser::BinaryExprOrContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
-  /*virtual std::any visitBinaryExprAnd(BakeParser::BinaryExprAndContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
-  /**/
+  virtual std::any visitIfStmt(BakeParser::IfStmtContext *ctx) override {
+    Value *condition = std::any_cast<Value*>(visit(ctx->binaryExpr()));
+
+    Function *func = builder->GetInsertBlock()->getParent();
+    BasicBlock *thenBlock = BasicBlock::Create(*theContext, "then", func);
+    BasicBlock *mergeBlock = BasicBlock::Create(*theContext, "merge", func);
+
+    builder->CreateCondBr(condition, thenBlock, mergeBlock);
+    builder->SetInsertPoint(thenBlock);
+    visit(ctx->opStmt());
+    builder->CreateBr(mergeBlock);
+
+    builder->SetInsertPoint(mergeBlock);
+
+    return nullptr;
+  }
+
+  virtual std::any visitBinaryExprCond(BakeParser::BinaryExprCondContext *ctx) override {
+    auto condOp = ctx->conditionOp();
+    std::pair<Value*, Kind> lhsInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(0)));
+    std::pair<Value*, Kind> rhsInfo = std::any_cast<std::pair<Value*, Kind>>(visit(ctx->value(1)));
+    Value *lhs = loadIfID(ctx->value(0), lhsInfo.first);
+    Value *rhs = loadIfID(ctx->value(1), rhsInfo.first);
+
+    Value *cmp = nullptr;
+    if (dynamic_cast<BakeParser::CondOpIsContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpEQ(lhs, rhs);
+    } else if (dynamic_cast<BakeParser::CondOpIsNotContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpNE(lhs, rhs);
+    } else if (dynamic_cast<BakeParser::CondOpLessThanContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpSLT(lhs, rhs);
+    } else if (dynamic_cast<BakeParser::CondOpGreaterThanContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpSGT(lhs, rhs);
+    } else if (dynamic_cast<BakeParser::CondOpLessThanEqContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpSLE(lhs, rhs);
+    } else if (dynamic_cast<BakeParser::CondOpGreaterThanEqContext*>(condOp) != nullptr) {
+      cmp = builder->CreateICmpSGE(lhs, rhs);
+    }
+
+    return cmp;
+  }
+
+  virtual std::any visitBinaryExprOr(BakeParser::BinaryExprOrContext *ctx) override {
+    Value *lhs = std::any_cast<Value*>(ctx->binaryExpr(0));
+    Value *rhs = std::any_cast<Value*>(ctx->binaryExpr(1));
+
+    return builder->CreateOr(lhs, rhs, "binaryOr");
+  }
+
+  virtual std::any visitBinaryExprAnd(BakeParser::BinaryExprAndContext *ctx) override {
+    Value *lhs = std::any_cast<Value*>(ctx->binaryExpr(0));
+    Value *rhs = std::any_cast<Value*>(ctx->binaryExpr(1));
+
+    return builder->CreateAnd(lhs, rhs, "binaryAnd");
+  }
+
   /*virtual std::any visitLoopStmt(BakeParser::LoopStmtContext *ctx) override {*/
   /*  return visitChildren(ctx);*/
   /*}*/

@@ -1,0 +1,9 @@
+# Abs
+
+## Ingredients
+1. IntA (-123)
+
+## Instructions
+1. if IntA < 0: multiply IntA by -1!
+1. serve IntA!
+

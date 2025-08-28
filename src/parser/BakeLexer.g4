@@ -102,7 +102,7 @@ An: [aA][nN] -> skip;
 Your: [yY][oO][uU][rR] -> skip;
 
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
-Int: [0-9]+;
+Int: '-'? [0-9]+;
 StringLiteral: '"' (~[\\"] | '\\\\' | '\\"' | '\\r' | '\\n')* '"';
 
 LineComment: [nN][oO][tT][eE] ~[\r\n]* -> channel(HIDDEN);
