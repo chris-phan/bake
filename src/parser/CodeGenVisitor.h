@@ -426,9 +426,32 @@ public:
     return builder->CreateAnd(lhs, rhs, "binaryAnd");
   }
 
-  /*virtual std::any visitLoopStmt(BakeParser::LoopStmtContext *ctx) override {*/
-  /*  return visitChildren(ctx);*/
-  /*}*/
+  virtual std::any visitLoopStmt(BakeParser::LoopStmtContext *ctx) override {
+    Function *func = builder->GetInsertBlock()->getParent();
+    BasicBlock *condBlock = BasicBlock::Create(*theContext, "loopCond", func);
+    BasicBlock *loopBody = BasicBlock::Create(*theContext, "loopBody", func);
+    BasicBlock *afterBlock = BasicBlock::Create(*theContext, "afterLoop", func);
+
+    builder->CreateBr(condBlock);
+    builder->SetInsertPoint(condBlock);
+
+    // Language semantics is repeat until <this condition is true>
+    // So, if the condition is false, we need to keep looping
+    Value *condition = std::any_cast<Value*>(visit(ctx->binaryExpr()));
+    Value *negCond = builder->CreateNot(condition, "loopCondition");
+
+    builder->CreateCondBr(negCond, loopBody, afterBlock);
+
+    builder->SetInsertPoint(loopBody);
+    for (auto inst : ctx->instruction()) {
+      visit(inst);
+    }
+    builder->CreateBr(condBlock);
+
+    builder->SetInsertPoint(afterBlock);
+
+    return nullptr;
+  }
 
   virtual std::any visitValueID(BakeParser::ValueIDContext *ctx) override {
     Value *val = namedValues[ctx->ID()->getText()];

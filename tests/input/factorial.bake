@@ -1,0 +1,14 @@
+# Factorial
+Note: calculates n!
+
+## Ingredients
+1. n (5)
+1. res (1)
+
+## Instructions
+1. repeat until n is 0:
+  1. multiply res by n!
+	1. remove 1 from n!
+1. repeat!
+1. serve res!
+
