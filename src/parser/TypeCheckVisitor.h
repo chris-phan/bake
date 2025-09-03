@@ -118,10 +118,12 @@ public:
 
   virtual std::any visitOpAdd(BakeParser::OpAddContext *ctx) override {
     Kind operand1 = std::any_cast<Kind>(visit(ctx->value(0)));
+    std::string destName = ctx->ID()->getText();
+    assertVariableExists(ctx, destName);
+    Kind destinationType = variableTypes[destName];
+
     if (ctx->And()) {
       Kind operand2 = std::any_cast<Kind>(visit(ctx->value(1)));
-      Kind destination = std::any_cast<Kind>(visit(ctx->value(2)));
-
       if (operand1 != operand2) {
         std::cerr << "Error: Line "
                   << ctx->getStart()->getLine()
@@ -130,24 +132,23 @@ public:
                   << " and "
                   << getKindName(operand2)
                   << std::endl;
-      } else if (operand1 != destination) {
+      } else if (operand1 != destinationType) {
         std::cerr << "Error: Line "
                   << ctx->getStart()->getLine()
                   << ": Type mismatch: Can't assign "
                   << getKindName(operand1)
                   << " to "
-                  << getKindName(destination)
+                  << getKindName(destinationType)
                   << std::endl;
       }
     } else {
-      Kind destination = std::any_cast<Kind>(visit(ctx->value(1)));
-      if (operand1 != destination) {
+      if (operand1 != destinationType) {
         std::cerr << "Error: Line "
                   << ctx->getStart()->getLine()
                   << ": Type mismatch: Can't add "
                   << getKindName(operand1)
                   << " to "
-                  << getKindName(destination)
+                  << getKindName(destinationType)
                   << std::endl;
       }
     }

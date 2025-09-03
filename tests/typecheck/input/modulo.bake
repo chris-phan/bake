@@ -39,4 +39,3 @@ Note: Invalid modulo
 1. StrA mod IntA to IntB!
 1. IntA mod StrA to StrB!
 1. StrA mod IntA to StrB!
-
