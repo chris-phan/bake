@@ -25,7 +25,7 @@ add_executable(${PROJECT_NAME} src/main.cpp ${ANTLR_SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE bakeSrc)
 
 
-file(GLOB TEST_SOURCES tests/typecheck/*.cpp)
+file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests PRIVATE bakeSrc GTest::gtest GTest::gtest_main)
 

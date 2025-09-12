@@ -43,11 +43,9 @@ int main(int argc, char **argv) {
   BakeParser parser(&tokens);
 
   tree::ParseTree* tree = parser.program();
-  TypeCheckVisitor* visitor = new TypeCheckVisitor();
-  visitor->visit(tree);
+  /*TypeCheckVisitor* visitor = new TypeCheckVisitor();*/
+  /*visitor->visit(tree);*/
 
-  return 0;
-  {
   CodeGenVisitor* visitor = new CodeGenVisitor();
 
   visitor->visit(tree);
@@ -94,5 +92,4 @@ int main(int argc, char **argv) {
   auto *mainPtr = mainAddr.toPtr<int (*)()>();
 
   return mainPtr();
-  }
 }
