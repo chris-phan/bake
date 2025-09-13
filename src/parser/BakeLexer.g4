@@ -20,8 +20,11 @@ Exclamation: '!';
 Question: '?';
 LParen: '(';
 RParen: ')';
+LBrace: '{';
+RBrace: '}';
 Quote: '"';
 Hash: '#';
+Comma: ',';
 ArrayAccess: '\'s#';
 
 Repeat: 'repeat';

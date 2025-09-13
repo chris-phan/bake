@@ -1,0 +1,25 @@
+# TwoSum
+
+## Ingredients
+1. Nums ({15, 11, 2, 7, 10, 29, 0})
+1. Target (9)
+1. i (1)
+1. j (2)
+1. tmp (0)
+1. found (0)
+
+## Instructions
+1. repeat until i > 4 or found is 1:
+1.   repeat until j > 4 or found is 1:
+1.     add Nums's#i and Nums's#j to tmp!
+1.     if tmp is Target: add 1 to found!
+1.     if tmp is not Target: add 1 to j!
+1.   repeat!
+1.   if found is not 1: add 1 to i!
+1.   if found is not 1: add i and 1 to j!
+1. repeat!
+1. if found is 1: serve i!
+1. if found is 1: serve " "!
+1. if found is 1: serve j!
+1. if found is 1: serve "\n"!
+

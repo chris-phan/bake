@@ -85,6 +85,13 @@ private:
   }
 
   Value* loadIfID(BakeParser::ValueContext *ctx, Value *val) {
+    // Don't load if it's an Int literal or String literal
+    if (dynamic_cast<BakeParser::ValueIntContext*>(ctx) != nullptr) {
+      return val;
+    } else if (dynamic_cast<BakeParser::ValueStringContext*>(ctx) != nullptr) {
+      return val;
+    }
+
     if (dynamic_cast<BakeParser::ValueIDContext*>(ctx) != nullptr) {
       std::string id = ctx->getText();
       Kind valType = variableTypes[id];
@@ -94,14 +101,21 @@ private:
         return loadStrID(val);
       }
     }
-    // TODO: figure out how to load this other stuff
-    /*else if (dynamic_cast<BakeParser::ValueArrayAccessIDContext*>(ctx) != nullptr) {*/
-    /*  return builder->CreateLoad(elemType, val, "loadArrayAccessID");*/
-    /*} else if (dynamic_cast<BakeParser::ValueArrayAccessIntContext*>(ctx) != nullptr) {*/
-    /*  return builder->CreateLoad(elemType, val, "loadArrayAccessInt");*/
-    /*}*/
 
-    // Don't load if it's an Int literal or String literal
+    std::string arrName;
+    if (auto arrCtx = dynamic_cast<BakeParser::ValueArrayAccessIDContext*>(ctx)) {
+      arrName = arrCtx->ID(0)->getText();
+    } else if (auto arrCtx = dynamic_cast<BakeParser::ValueArrayAccessIntContext*>(ctx)) {
+      arrName = arrCtx->ID()->getText();
+    }
+
+    Kind valType = variableTypes[arrName];
+    if (valType == Kind::ArrayInt) {
+      return builder->CreateLoad(builder->getInt32Ty(), val, "loadArrayAccessID");
+    } else {
+      return loadStrID(val);
+    }
+
     return val;
   }
 
@@ -285,6 +299,32 @@ public:
     Value *zero = builder->getInt32(0);
     Value *idxs[] = {zero, zero};
     Value *intArrPtr = builder->CreateInBoundsGEP(globalIntArr->getValueType(), globalIntArr, idxs, "intArrPtr");
+    return std::make_pair(intArrPtr, Kind::ArrayInt);
+  }
+
+  virtual std::any visitArrayIntLiteral(BakeParser::ArrayIntLiteralContext *ctx) override {
+    int arrLen = ctx->Int().size();
+    ArrayType *arrType = ArrayType::get(builder->getInt32Ty(), arrLen);
+    std::vector<Constant*> initVals;
+    for (int i = 0; i < arrLen; ++i) {
+      int val = std::stoi(ctx->Int(i)->getText());
+      initVals.push_back(ConstantInt::get(builder->getInt32Ty(), val));
+    }
+
+    GlobalVariable *globalIntArr = new GlobalVariable(
+      *theModule,
+      arrType,
+      false,
+      GlobalValue::PrivateLinkage,
+      ConstantArray::get(arrType, initVals),
+      "intArr"
+    );
+
+    // Get a pointer to the first int
+    Value *zero = builder->getInt32(0);
+    Value *idxs[] = {zero, zero};
+    Value *intArrPtr = builder->CreateInBoundsGEP(globalIntArr->getValueType(), globalIntArr, idxs, "intArrPtr");
+
     return std::make_pair(intArrPtr, Kind::ArrayInt);
   }
 
@@ -567,15 +607,16 @@ public:
   }
 
   virtual std::any visitBinaryExprOr(BakeParser::BinaryExprOrContext *ctx) override {
-    Value *lhs = std::any_cast<Value*>(ctx->binaryExpr(0));
-    Value *rhs = std::any_cast<Value*>(ctx->binaryExpr(1));
+    Value *lhs = std::any_cast<Value*>(visit(ctx->binaryExpr(0)));
+    Value *rhs = std::any_cast<Value*>(visit(ctx->binaryExpr(1)));
 
+    Value *orExpr = builder->CreateOr(lhs, rhs, "binaryOr");
     return builder->CreateOr(lhs, rhs, "binaryOr");
   }
 
   virtual std::any visitBinaryExprAnd(BakeParser::BinaryExprAndContext *ctx) override {
-    Value *lhs = std::any_cast<Value*>(ctx->binaryExpr(0));
-    Value *rhs = std::any_cast<Value*>(ctx->binaryExpr(1));
+    Value *lhs = std::any_cast<Value*>(visit(ctx->binaryExpr(0)));
+    Value *rhs = std::any_cast<Value*>(visit(ctx->binaryExpr(1)));
 
     return builder->CreateAnd(lhs, rhs, "binaryAnd");
   }
@@ -592,6 +633,7 @@ public:
     // Language semantics is repeat until <this condition is true>
     // So, if the condition is false, we need to keep looping
     Value *condition = std::any_cast<Value*>(visit(ctx->binaryExpr()));
+
     Value *negCond = builder->CreateNot(condition, "loopCondition");
 
     builder->CreateCondBr(negCond, loopBody, afterBlock);
@@ -620,19 +662,21 @@ public:
 
     // The language is 1-indexed, so subtract 1 from the provided idx
     Value *one = builder->getInt32(1);
-    Value *idx = namedValues[ctx->ID(1)->getText()];
+    Value *idx = builder->CreateLoad(builder->getInt32Ty(), namedValues[ctx->ID(1)->getText()]);
     Value *oneAdjustedIdx = builder->CreateSub(idx, one, "adjustIdxBy1");
-
-    Value *arr = namedValues[ctx->ID(0)->getText()];
-    Type *elemType = cast<PointerType>(arr->getType())->getArrayElementType();
-    Value *elemPtr = builder->CreateInBoundsGEP(elemType, arr, oneAdjustedIdx, "elemPtr");
 
     // Array access resolves to either an Int or String
     Kind arrType = variableTypes[ctx->ID(0)->getText()];
+    Type *llvmElemType = builder->getInt32Ty();
     Kind type = Kind::Int;
     if (arrType == Kind::ArrayString) {
       type = Kind::String;
+      llvmElemType = PointerType::get(builder->getInt8Ty(), 0);
     }
+
+    GlobalVariable *arr = dyn_cast<GlobalVariable>(namedValues[ctx->ID(0)->getText()]);
+    auto arrLen = dyn_cast<ArrayType>(arr->getValueType())->getNumElements();
+    Value *elemPtr = builder->CreateInBoundsGEP(ArrayType::get(builder->getInt32Ty(), arrLen), arr, {zero, oneAdjustedIdx}, "elemPtr");
 
     return std::make_pair(elemPtr, type);
   }
@@ -645,16 +689,18 @@ public:
     Value *idx = builder->getInt32(std::stoi(ctx->Int()->getText()));
     Value *oneAdjustedIdx = builder->CreateSub(idx, one, "adjustIdxBy1");
 
-    Value *arr = namedValues[ctx->ID()->getText()];
-    Type *elemType = cast<PointerType>(arr->getType())->getArrayElementType();
-    Value *elemPtr = builder->CreateInBoundsGEP(elemType, arr, oneAdjustedIdx, "elemPtr");
-
     // Array access resolves to either an Int or String
     Kind arrType = variableTypes[ctx->ID()->getText()];
+    Type *llvmElemType = builder->getInt32Ty();
     Kind type = Kind::Int;
     if (arrType == Kind::ArrayString) {
       type = Kind::String;
+      llvmElemType = PointerType::get(builder->getInt8Ty(), 0);
     }
+
+    GlobalVariable *arr = dyn_cast<GlobalVariable>(namedValues[ctx->ID()->getText()]);
+    auto arrLen = dyn_cast<ArrayType>(arr->getValueType())->getNumElements();
+    Value *elemPtr = builder->CreateInBoundsGEP(ArrayType::get(builder->getInt32Ty(), arrLen), arr, {zero, oneAdjustedIdx}, "elemPtr");
 
     return std::make_pair(elemPtr, type);
   }

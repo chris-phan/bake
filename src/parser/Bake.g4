@@ -26,8 +26,10 @@ type: intType
 
 intType: Int;
 stringType: StringLiteral;
-arrayType: Int Int            #arrayInt
-         | Int StringLiteral  #arrayString
+arrayType: Int Int                                             #arrayInt
+         | LBrace (Int Comma)* Int RBrace                      #arrayIntLiteral
+         | Int StringLiteral                                   #arrayString
+         | LBrace (StringLiteral Comma)* StringLiteral RBrace  #arrayStringLiteral
          ;
 
 instructions: instructionsHeading instruction+;
